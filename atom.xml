@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Inn</title>
+  
+  
+  <link href="/atom.xml" rel="self"/>
+  
+  <link href="https://ifif.cf/"/>
+  <updated>2019-03-14T14:19:10.913Z</updated>
+  <id>https://ifif.cf/</id>
+  
+  <author>
+    <name>Airom</name>
+    
+  </author>
+  
+  <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>hexo 使用子模块实现自定义主题与hexo文件分离，在两个git维护</title>
+    <link href="https://ifif.cf/6/"/>
+    <id>https://ifif.cf/6/</id>
+    <published>2019-02-09T03:47:12.000Z</published>
+    <updated>2019-03-14T14:19:10.913Z</updated>
+    
+    <summary type="html">
+    
+      &lt;p&gt;以前我们已经设置并发布了基于hexo的博客。文章源代码和hexo配置文件在git版本控制下。&lt;br&gt;现在我们想把整个本地hexo的配置文件等等全部托管到远端仓库，相当于备份。但是git add . 不会把我们hexo里面的themes目录下我们自己设置的主题同步上去，因为这个主题可能是我们从别的地方clone或下载的，包含了别人的git信息。因此本文来实现将别人的themes托管到远端仓库，实现自定义主题与hexo文件分离，在两个git维护。&lt;br&gt;&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="Study" scheme="https://ifif.cf/categories/Study/"/>
+    
+      <category term="Coding" scheme="https://ifif.cf/categories/Study/Coding/"/>
+    
+    
+      <category term="hexo" scheme="https://ifif.cf/tags/hexo/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>影评：《人生果实》——津端夫妇纪录片</title>
+    <link href="https://ifif.cf/5/"/>
+    <id>https://ifif.cf/5/</id>
+    <published>2019-02-07T14:26:12.000Z</published>
+    <updated>2019-03-14T08:31:27.381Z</updated>
+    
+    <summary type="html">
+    
+      &lt;p&gt;影评：《人生果实》——津端夫妇纪录片&lt;br&gt;–原书《积存时间的生活》&lt;br&gt;&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="Life" scheme="https://ifif.cf/categories/Life/"/>
+    
+      <category term="Movies" scheme="https://ifif.cf/categories/Life/Movies/"/>
+    
+    
+      <category term="影评" scheme="https://ifif.cf/tags/%E5%BD%B1%E8%AF%84/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Summary of 30 days in IDL</title>
+    <link href="https://ifif.cf/4/"/>
+    <id>https://ifif.cf/4/</id>
+    <published>2018-12-17T15:55:11.000Z</published>
+    <updated>2019-03-14T08:31:27.379Z</updated>
+    
+    <summary type="html">
+    
+      &lt;p&gt;2018.11.18-2018.12.17 ——Thirty Days&lt;/p&gt;
+&lt;p&gt;IDL&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="IDL" scheme="https://ifif.cf/tags/IDL/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Android开发中必须注意的关键细节</title>
+    <link href="https://ifif.cf/3/"/>
+    <id>https://ifif.cf/3/</id>
+    <published>2018-12-04T13:12:05.000Z</published>
+    <updated>2019-03-14T08:31:27.378Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h3 id=&quot;设置android-allowBackup-false权限&quot;&gt;&lt;a href=&quot;#设置android-allowBackup-false权限&quot; class=&quot;headerlink&quot; title=&quot;设置android:allowBackup = false权限&quot;&gt;&lt;/a&gt;设置android:allowBackup = false权限&lt;/h3&gt;
+    
+    </summary>
+    
+      <category term="Study" scheme="https://ifif.cf/categories/Study/"/>
+    
+      <category term="Coding" scheme="https://ifif.cf/categories/Study/Coding/"/>
+    
+    
+      <category term="Android" scheme="https://ifif.cf/tags/Android/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Android开源框架分享</title>
+    <link href="https://ifif.cf/2/"/>
+    <id>https://ifif.cf/2/</id>
+    <published>2018-11-30T15:39:35.000Z</published>
+    <updated>2019-03-14T08:31:27.378Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;骨架屏&quot;&gt;&lt;a href=&quot;#骨架屏&quot; class=&quot;headerlink&quot; title=&quot;骨架屏&quot;&gt;&lt;/a&gt;骨架屏&lt;/h2&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/sharish/ShimmerRecyclerView&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;https://github.com/sharish/ShimmerRecyclerView&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://github.com/ethanhua/Skeleton&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;https://github.com/ethanhua/Skeleton&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://github.com/willowtreeapps/spruce-android&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;https://github.com/willowtreeapps/spruce-android&lt;/a&gt;&lt;br&gt;&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="Study" scheme="https://ifif.cf/categories/Study/"/>
+    
+      <category term="Coding" scheme="https://ifif.cf/categories/Study/Coding/"/>
+    
+    
+      <category term="Android" scheme="https://ifif.cf/tags/Android/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Hello World</title>
+    <link href="https://ifif.cf/1/"/>
+    <id>https://ifif.cf/1/</id>
+    <published>2018-11-24T16:00:35.000Z</published>
+    <updated>2019-03-14T08:31:27.379Z</updated>
+    
+    <summary type="html">
+    
+      &lt;p&gt;Formally Create Wordpress Blog&lt;/p&gt;
+&lt;p&gt;Write down this sentence.”Celebrate the first article.”&lt;br&gt;&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="Study" scheme="https://ifif.cf/categories/Study/"/>
+    
+      <category term="Coding" scheme="https://ifif.cf/categories/Study/Coding/"/>
+    
+    
+  </entry>
+  
+</feed>

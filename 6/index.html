@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta name="generator" content="Hexo 3.8.0">
+    <meta charset="utf-8">
+<title>hexo 使用子模块实现自定义主题与hexo文件分离，在两个git维护 - Inn</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+
+    <meta name="description" content="以前我们已经设置并发布了基于hexo的博客。文章源代码和hexo配置文件在git版本控制下。现在我们想把整个本地hexo的配置文件等等全部托管到远端仓库，相当于备份。但是git add . 不会把我们hexo里面的themes目录下我们自己设置的主题同步上去，因为这个主题可能是我们从别的地方clone或下载的，包含了别人的git信息。因此本文来实现将别人的themes托管到远端仓库，实现自定义主题">
+<meta name="keywords" content="hexo">
+<meta property="og:type" content="article">
+<meta property="og:title" content="hexo 使用子模块实现自定义主题与hexo文件分离，在两个git维护">
+<meta property="og:url" content="https://ifif.cf/6/index.html">
+<meta property="og:site_name" content="Inn">
+<meta property="og:description" content="以前我们已经设置并发布了基于hexo的博客。文章源代码和hexo配置文件在git版本控制下。现在我们想把整个本地hexo的配置文件等等全部托管到远端仓库，相当于备份。但是git add . 不会把我们hexo里面的themes目录下我们自己设置的主题同步上去，因为这个主题可能是我们从别的地方clone或下载的，包含了别人的git信息。因此本文来实现将别人的themes托管到远端仓库，实现自定义主题">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="http://feng.lu/2016/08/12/How-to-setup-a-hexo-based-blog-Part-2/grayedout-folder-in-github-without-ref.png">
+<meta property="og:image" content="http://feng.lu/2016/08/12/How-to-setup-a-hexo-based-blog-Part-2/Next-linkcd%20git%20submodule%20command%20line.png">
+<meta property="og:image" content="http://feng.lu/2016/08/12/How-to-setup-a-hexo-based-blog-Part-2/Next-linkcd%20submodule%20in%20github.png">
+<meta property="og:image" content="http://feng.lu/2016/08/12/How-to-setup-a-hexo-based-blog-Part-2/Restore-blog.png">
+<meta property="og:updated_time" content="2019-03-14T14:19:10.913Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="hexo 使用子模块实现自定义主题与hexo文件分离，在两个git维护">
+<meta name="twitter:description" content="以前我们已经设置并发布了基于hexo的博客。文章源代码和hexo配置文件在git版本控制下。现在我们想把整个本地hexo的配置文件等等全部托管到远端仓库，相当于备份。但是git add . 不会把我们hexo里面的themes目录下我们自己设置的主题同步上去，因为这个主题可能是我们从别的地方clone或下载的，包含了别人的git信息。因此本文来实现将别人的themes托管到远端仓库，实现自定义主题">
+<meta name="twitter:image" content="http://feng.lu/2016/08/12/How-to-setup-a-hexo-based-blog-Part-2/grayedout-folder-in-github-without-ref.png">
+
+
+
+<link rel="alternative" href="/atom.xml" title="hexo 使用子模块实现自定义主题与hexo文件分离，在两个git维护" type="application/atom+xml">
+
+
+
+<link rel="icon" href="/images/favicon.svg">
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.7.2/css/bulma.css">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu:400,600|Source+Code+Pro">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/atom-one-light.css">
+
+
+    
+    
+    
+    <style>body>.footer,body>.navbar,body>.section{opacity:0}</style>
+    
+
+    
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/css/lightgallery.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/css/justifiedGallery.min.css">
+    
+
+    
+    
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.css">
+
+
+    
+    
+    
+    
+
+<link rel="stylesheet" href="/css/back-to-top.css">
+
+
+    
+    
+
+    
+    
+    
+    
+
+    
+    
+<link rel="stylesheet" href="/css/progressbar.css">
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+
+    
+    
+    
+
+    
+
+
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="is-3-column">
+    <nav class="navbar navbar-main">
+    <div class="container">
+        <div class="navbar-brand is-flex-center">
+            <a class="navbar-item navbar-logo" href="/">
+            
+                Airom
+            
+            </a>
+        </div>
+        <div class="navbar-menu">
+            
+            <div class="navbar-start">
+                
+                <a class="navbar-item" href="/">Home</a>
+                
+                <a class="navbar-item" href="/archives">Archives</a>
+                
+                <a class="navbar-item" href="/categories">Categories</a>
+                
+                <a class="navbar-item" href="/tags">Tags</a>
+                
+                <a class="navbar-item" href="/about">About</a>
+                
+            </div>
+            
+            <div class="navbar-end">
+                
+                
+                
+                <a class="navbar-item search" title="Search" href="javascript:;">
+                    <i class="fas fa-search"></i>
+                </a>
+                
+            </div>
+        </div>
+    </div>
+</nav>
+    
+    <section class="section">
+        <div class="container">
+            <div class="columns">
+                <div class="column is-8-tablet is-8-desktop is-6-widescreen has-order-2 column-main"><div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2019-02-09T03:47:12.000Z">2019-02-09</time>
+                
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/Study/">Study</a>&nbsp;/&nbsp;<a class="has-link-grey -link" href="/categories/Study/Coding/">Coding</a>
+                </div>
+                
+                
+                <span class="level-item has-text-grey">
+                    
+                    
+                    9 minutes read (About 1302 words)
+                </span>
+                
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                hexo 使用子模块实现自定义主题与hexo文件分离，在两个git维护
+            
+        </h1>
+        <div class="content">
+            <p>以前我们已经设置并发布了基于hexo的博客。文章源代码和hexo配置文件在git版本控制下。<br>现在我们想把整个本地hexo的配置文件等等全部托管到远端仓库，相当于备份。但是git add . 不会把我们hexo里面的themes目录下我们自己设置的主题同步上去，因为这个主题可能是我们从别的地方clone或下载的，包含了别人的git信息。因此本文来实现将别人的themes托管到远端仓库，实现自定义主题与hexo文件分离，在两个git维护。<br><a id="more"></a></p>
+<h2 id="配置主题，错误的方式"><a href="#配置主题，错误的方式" class="headerlink" title="配置主题，错误的方式"></a>配置主题，错误的方式</h2><p>与大多数hexo教程一样，下一步是更改默认主题。有很多主题可供选择。但是，大多数主题只是要求您在themes文件夹下克隆自己。</p>
+<p>在这种情况下，我们将使用流行的主题NexT。其文件指定如下：</p>
+<ul>
+<li>安装</li>
+</ul>
+<blockquote>
+<ol>
+<li>git clone <a href="https://github.com/iissnan/hexo-theme-next" target="_blank" rel="noopener">https://github.com/iissnan/hexo-theme-next</a> themes/next</li>
+</ol>
+</blockquote>
+<ul>
+<li>更新_config.yml以使用此主题</li>
+</ul>
+<blockquote>
+<ol>
+<li>theme: next</li>
+</ol>
+</blockquote>
+<ul>
+<li>在需要时拉主题更新</li>
+</ul>
+<blockquote>
+<ol>
+<li>cd theme/next</li>
+<li>git pull</li>
+</ol>
+</blockquote>
+<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>对于大多数主题（包括NexT），我们必须修改主题文件夹下的主题_config.yml文件，以便：</p>
+<ul>
+<li>更改主题级别的配置，例如更改主题样式</li>
+<li>更新个人信息</li>
+<li>设置Google Analytic密钥</li>
+<li>与第三方评论插件集成</li>
+<li>未来以您想要的方式定制主题</li>
+</ul>
+<p>当然，您希望在版本控制下进行上述修改，因此您可以检查它们并推送到Git。</p>
+<p>现在，如果您前往Github源代码页，您会发现一个名为“Next”的有趣的灰色文件夹。</p>
+<p><img src="http://feng.lu/2016/08/12/How-to-setup-a-hexo-based-blog-Part-2/grayedout-folder-in-github-without-ref.png" alt="github中的灰显文件夹"></p>
+<p>您也失去了在那里浏览主题源代码的可能性。</p>
+<h2 id="根本原因"><a href="#根本原因" class="headerlink" title="根本原因"></a>根本原因</h2><p>从技术上讲，我们创建了一个<strong>嵌套的git存储库结构</strong>：git存储库“Blog-Hexo”下面有一个git存储库“Next”。这个<a href="https://git-scm.com/book/en/v2/Git-Tools-Submodules" target="_blank" rel="noopener">git文档</a>对此有一个很好的解释。</p>
+<h2 id="正确的方式"><a href="#正确的方式" class="headerlink" title="正确的方式"></a>正确的方式</h2><p>由于我们的自定义主题成为博客系统的独立组件，因此需要对其进行适当的版本控制。</p>
+<ol>
+<li><p>Fork主题项目<br>通过这样做，您可以正确地控制对主题的修改，但仍然可以使其保持最新状态。fork版本是<a href="https://github.com/linkcd/hexo-theme-next。" target="_blank" rel="noopener">https://github.com/linkcd/hexo-theme-next。</a></p>
+</li>
+<li><p>创建名为“next-linkcd”的Git子模块（意味着它是我们自己的NexT主题版本），并指向<a href="https://github.com/linkcd/hexo-theme-next。" target="_blank" rel="noopener">https://github.com/linkcd/hexo-theme-next。</a></p>
+<blockquote>
+<ol>
+<li>cd blog-hexo </li>
+<li>git submodule add <a href="https://github.com/linkcd/hexo-theme-next" target="_blank" rel="noopener">https://github.com/linkcd/hexo-theme-next</a> themes/next-linkcd</li>
+</ol>
+</blockquote>
+</li>
+<li><p>请求hexo使用我们自己的主题</p>
+<blockquote>
+<ol>
+<li>theme: next-linkcd</li>
+</ol>
+</blockquote>
+</li>
+<li><p>现在您有2个独立的存储库，一个用于您的blog-hexo，另一个用于您自己的主题。您可以运行以下命令来查看关系。</p>
+</li>
+</ol>
+<p><img src="http://feng.lu/2016/08/12/How-to-setup-a-hexo-based-blog-Part-2/Next-linkcd%20git%20submodule%20command%20line.png" alt="命令行中的next-linkcd git子模块"><br>它也适用于Github网页</p>
+<p><img src="http://feng.lu/2016/08/12/How-to-setup-a-hexo-based-blog-Part-2/Next-linkcd%20submodule%20in%20github.png" alt="Github中的Next-linkcd git子模块"><br>请注意，两个地方的“git戳”是d82e379。</p>
+<h2 id="自定义主题"><a href="#自定义主题" class="headerlink" title="自定义主题"></a>自定义主题</h2><p>现在您可以自由修改主题了。要将主题更改推回Github，请按照以下步骤操作：</p>
+<ol>
+<li>Git添加，提交并推入next-linkcd文件夹</li>
+<li>Git添加，提交和推送blog-hexo文件夹，即使您没有修改博客中的任何内容。</li>
+</ol>
+<h3 id="补充"><a href="#补充" class="headerlink" title="补充"></a>补充</h3><p>在实际使用的时候，理论上会有3个仓库，一个是我们搭建的hexo博客仓库，一个是我们备份的本地hexo仓库，另一个是这个仓库的子模块（submodule），也就是我们fork的主题仓库。<br>使用时，我们会对主题进行或多或少的修改，因此修改后的主题我们可以通过git同步到远端仓库。本地备份的hexo仓库一般改动不大，用git备份到远端仓库即可。平时写文章我们搭建的博客会改动，所以需要hexo clean，hexo s来推送到远端git仓库。</p>
+<h2 id="两台PC之间同步"><a href="#两台PC之间同步" class="headerlink" title="两台PC之间同步"></a>两台PC之间同步</h2><blockquote>
+<ol>
+<li>cd blog-hexo </li>
+<li>git pull </li>
+<li>git submodule update</li>
+</ol>
+</blockquote>
+<h2 id="在新PC中恢复您的博客"><a href="#在新PC中恢复您的博客" class="headerlink" title="在新PC中恢复您的博客"></a>在新PC中恢复您的博客</h2><ol>
+<li>从Github恢复源代码</li>
+</ol>
+<blockquote>
+<ol>
+<li>git clone  <a href="https://github.com/linkcd/blog-hexo.git" target="_blank" rel="noopener">https://github.com/linkcd/blog-hexo.git</a></li>
+<li>cd blog-hexo </li>
+<li>git submodule update –init</li>
+</ol>
+</blockquote>
+<p><img src="http://feng.lu/2016/08/12/How-to-setup-a-hexo-based-blog-Part-2/Restore-blog.png" alt="恢复博客"></p>
+<ol start="2">
+<li>重新安装hexo程序。<br>无需重新安装插件。</li>
+</ol>
+<blockquote>
+<ol>
+<li>cd blog-hexo </li>
+<li>npm install hexo </li>
+<li>npm install</li>
+</ol>
+</blockquote>
+<ol start="3">
+<li>完成</li>
+</ol>
+<p><strong>本文参考fenglu大佬的文章，<a href="http://feng.lu/2016/08/12/How-to-setup-a-hexo-based-blog-Part-2/" target="_blank" rel="noopener">原文</a>为英文，自己翻译过来，并加入自己使用时遇到的问题以及分析过程总结，侵删转注</strong></p>
+
+        </div>
+        
+        <div class="level is-size-7 is-uppercase">
+            <div class="level-start">
+                <div class="level-item">
+                    <span class="is-size-6 has-text-grey has-mr-7">#</span>
+                    <a class="has-link-grey -link" href="/tags/hexo/">hexo</a>
+                </div>
+            </div>
+        </div>
+        
+        
+        
+    </div>
+</div>
+
+
+
+<div class="card">
+    <div class="card-content">
+        <h3 class="menu-label has-text-centered">Like this article? Support the author with</h3>
+        <div class="buttons is-centered">
+            
+                
+<a class="button is-info donate">
+    <span class="icon is-small">
+        <i class="fab fa-alipay"></i>
+    </span>
+    <span>Alipay</span>
+    <div class="qrcode"><img src="https://inn.nos-eastchina1.126.net/blog/qrcode/zfb.png" alt="Alipay"></div>
+</a>
+
+                
+                
+<a class="button is-success donate">
+    <span class="icon is-small">
+        <i class="fab fa-weixin"></i>
+    </span>
+    <span>Wechat</span>
+    <div class="qrcode"><img src="https://inn.nos-eastchina1.126.net/blog/qrcode/wx.png" alt="Wechat"></div>
+</a>
+
+                
+        </div>
+    </div>
+</div>
+
+
+
+<div class="card card-transparent">
+    <div class="level post-navigation is-flex-wrap is-mobile">
+        
+        
+        <div class="level-end">
+            <a class="level level-item has-link-grey  article-nav-next" href="/5/">
+                <span class="level-item">影评：《人生果实》——津端夫妇纪录片</span>
+                <i class="level-item fas fa-chevron-right"></i>
+            </a>
+        </div>
+        
+    </div>
+</div>
+
+
+</div>
+                
+
+
+
+
+<div class="column is-4-tablet is-4-desktop is-3-widescreen  has-order-1 column-left ">
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <nav class="level">
+            <div class="level-item has-text-centered">
+                <div>
+                    
+                        <img class="image is-128x128 has-mb-6" src="/images/avatar.png" alt="Airom">
+                    
+                    
+                    <p class="is-size-4 is-block">
+                        Airom
+                    </p>
+                    
+                    
+                    <p class="is-size-6 is-block">
+                        Apprentice
+                    </p>
+                    
+                    
+                    <p class="is-size-6 is-flex is-flex-center has-text-grey">
+                        <i class="fas fa-map-marker-alt has-mr-7"></i>
+                        <span>China</span>
+                    </p>
+                    
+                </div>
+            </div>
+        </nav>
+        <nav class="level is-mobile">
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        Posts
+                    </p>
+                    <p class="title has-text-weight-normal">
+                        6
+                    </p>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        Categories
+                    </p>
+                    <p class="title has-text-weight-normal">
+                        4
+                    </p>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        Tags
+                    </p>
+                    <p class="title has-text-weight-normal">
+                        4
+                    </p>
+                </div>
+            </div>
+        </nav>
+        <div class="level">
+            <a class="level-item button is-link is-rounded" href="https://github.com/Airomeo" target="_blank">
+                Follow</a>
+        </div>
+        
+        
+        <div class="level is-mobile">
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="Github" href="https://github.com/Airomeo">
+                
+                <i class="fab fa-github"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="Weibo" href="https://weibo.com/u/2884950940">
+                
+                <i class="fab fa-weibo"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="QQ" href="http://wpa.qq.com/msgrd?v=3&amp;uin=763647004&amp;site=qq&amp;menu=yes">
+                
+                <i class="fab fa-qq"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="CSDN" href="https://blog.csdn.net/Airomeo">
+                
+                <i class="fab fa-cuttlefish"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="RSS" href="/atom.xml">
+                
+                <i class="fas fa-rss"></i>
+                
+            </a>
+            
+        </div>
+        
+    </div>
+</div>
+    
+        
+    
+        
+
+<div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+        <h3 class="menu-label">
+            Links
+        </h3>
+        <ul class="menu-list">
+        
+            <li>
+                <a class="level is-mobile" href="https://hexo.io" target="_blank">
+                    <span class="level-left">
+                        <span class="level-item">Hexo</span>
+                    </span>
+                    <span class="level-right">
+                        <span class="level-item tag">hexo.io</span>
+                    </span>
+                </a>
+            </li>
+        
+            <li>
+                <a class="level is-mobile" href="https://blog.zhangruipeng.me/hexo-theme-icarus/" target="_blank">
+                    <span class="level-left">
+                        <span class="level-item">Icarus</span>
+                    </span>
+                    <span class="level-right">
+                        <span class="level-item tag">blog.zhangruipeng.me</span>
+                    </span>
+                </a>
+            </li>
+        
+            <li>
+                <a class="level is-mobile" href="https://hutmobile.github.io/" target="_blank">
+                    <span class="level-left">
+                        <span class="level-item">移动组</span>
+                    </span>
+                    <span class="level-right">
+                        <span class="level-item tag">hutmobile.github.io</span>
+                    </span>
+                </a>
+            </li>
+        
+        </ul>
+        </div>
+    </div>
+</div>
+
+
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                Categories
+            </h3>
+            <ul class="menu-list">
+            <li>
+        <a class="level is-marginless" href="/categories/Life/">
+            <span class="level-start">
+                <span class="level-item">Life</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a><ul><li>
+        <a class="level is-marginless" href="/categories/Life/Movies/">
+            <span class="level-start">
+                <span class="level-item">Movies</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li></ul></li><li>
+        <a class="level is-marginless" href="/categories/Study/">
+            <span class="level-start">
+                <span class="level-item">Study</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">4</span>
+            </span>
+        </a><ul><li>
+        <a class="level is-marginless" href="/categories/Study/Coding/">
+            <span class="level-start">
+                <span class="level-item">Coding</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">4</span>
+            </span>
+        </a></li></ul></li>
+            </ul>
+        </div>
+    </div>
+</div>
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <h3 class="menu-label">
+            Tag Cloud
+        </h3>
+        <a href="/tags/Android/" style="font-size: 20px;">Android</a> <a href="/tags/IDL/" style="font-size: 10px;">IDL</a> <a href="/tags/hexo/" style="font-size: 10px;">hexo</a> <a href="/tags/影评/" style="font-size: 10px;">影评</a>
+    </div>
+</div>
+
+    
+    
+        <div class="column-right-shadow is-hidden-widescreen ">
+        
+            
+<div class="card widget">
+    <div class="card-content">
+        <h3 class="menu-label">
+            Recent
+        </h3>
+        
+        <article class="media">
+            
+            <a href="/6/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="hexo 使用子模块实现自定义主题与hexo文件分离，在两个git维护">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-02-09T03:47:12.000Z">2019-02-09</time></div>
+                    <a href="/6/" class="has-link-black-ter is-size-6">hexo 使用子模块实现自定义主题与hexo文件分离，在两个git维护</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/Study/">Study</a> / <a class="has-link-grey -link" href="/categories/Study/Coding/">Coding</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/5/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="https://inn.nos-eastchina1.126.net/blog/5/ktTsVs.jpg" alt="影评：《人生果实》——津端夫妇纪录片">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-02-07T14:26:12.000Z">2019-02-07</time></div>
+                    <a href="/5/" class="has-link-black-ter is-size-6">影评：《人生果实》——津端夫妇纪录片</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/Life/">Life</a> / <a class="has-link-grey -link" href="/categories/Life/Movies/">Movies</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/4/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="https://inn.nos-eastchina1.126.net/blog/4/mmexport1543858732579.jpg" alt="Summary of 30 days in IDL">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2018-12-17T15:55:11.000Z">2018-12-17</time></div>
+                    <a href="/4/" class="has-link-black-ter is-size-6">Summary of 30 days in IDL</a>
+                    <p class="is-size-7 is-uppercase">
+                        
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/3/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="Android开发中必须注意的关键细节">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2018-12-04T13:12:05.000Z">2018-12-04</time></div>
+                    <a href="/3/" class="has-link-black-ter is-size-6">Android开发中必须注意的关键细节</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/Study/">Study</a> / <a class="has-link-grey -link" href="/categories/Study/Coding/">Coding</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="Android开源框架分享">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2018-11-30T15:39:35.000Z">2018-11-30</time></div>
+                    <a href="/2/" class="has-link-black-ter is-size-6">Android开源框架分享</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/Study/">Study</a> / <a class="has-link-grey -link" href="/categories/Study/Coding/">Coding</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+    </div>
+</div>
+
+        
+            <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+        <h3 class="menu-label">
+            Archives
+        </h3>
+        <ul class="menu-list">
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/02/">
+                <span class="level-start">
+                    <span class="level-item">February 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2018/12/">
+                <span class="level-start">
+                    <span class="level-item">December 2018</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2018/11/">
+                <span class="level-start">
+                    <span class="level-item">November 2018</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        </ul>
+        </div>
+    </div>
+</div>
+        
+            <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                Tags
+            </h3>
+            <div class="field is-grouped is-grouped-multiline">
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/Android/">
+                        <span class="tag">Android</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/IDL/">
+                        <span class="tag">IDL</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/hexo/">
+                        <span class="tag">hexo</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/影评/">
+                        <span class="tag">影评</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+        
+        </div>
+    
+</div>
+
+                
+
+
+
+
+<div class="column is-4-tablet is-4-desktop is-3-widescreen is-hidden-touch is-hidden-desktop-only has-order-3 column-right ">
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <h3 class="menu-label">
+            Recent
+        </h3>
+        
+        <article class="media">
+            
+            <a href="/6/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="hexo 使用子模块实现自定义主题与hexo文件分离，在两个git维护">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-02-09T03:47:12.000Z">2019-02-09</time></div>
+                    <a href="/6/" class="has-link-black-ter is-size-6">hexo 使用子模块实现自定义主题与hexo文件分离，在两个git维护</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/Study/">Study</a> / <a class="has-link-grey -link" href="/categories/Study/Coding/">Coding</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/5/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="https://inn.nos-eastchina1.126.net/blog/5/ktTsVs.jpg" alt="影评：《人生果实》——津端夫妇纪录片">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2019-02-07T14:26:12.000Z">2019-02-07</time></div>
+                    <a href="/5/" class="has-link-black-ter is-size-6">影评：《人生果实》——津端夫妇纪录片</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/Life/">Life</a> / <a class="has-link-grey -link" href="/categories/Life/Movies/">Movies</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/4/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="https://inn.nos-eastchina1.126.net/blog/4/mmexport1543858732579.jpg" alt="Summary of 30 days in IDL">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2018-12-17T15:55:11.000Z">2018-12-17</time></div>
+                    <a href="/4/" class="has-link-black-ter is-size-6">Summary of 30 days in IDL</a>
+                    <p class="is-size-7 is-uppercase">
+                        
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/3/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="Android开发中必须注意的关键细节">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2018-12-04T13:12:05.000Z">2018-12-04</time></div>
+                    <a href="/3/" class="has-link-black-ter is-size-6">Android开发中必须注意的关键细节</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/Study/">Study</a> / <a class="has-link-grey -link" href="/categories/Study/Coding/">Coding</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+        <article class="media">
+            
+            <a href="/2/" class="media-left">
+                <p class="image is-64x64">
+                    <img class="thumbnail" src="/images/thumbnail.svg" alt="Android开源框架分享">
+                </p>
+            </a>
+            
+            <div class="media-content">
+                <div class="content">
+                    <div><time class="has-text-grey is-size-7 is-uppercase" datetime="2018-11-30T15:39:35.000Z">2018-11-30</time></div>
+                    <a href="/2/" class="has-link-black-ter is-size-6">Android开源框架分享</a>
+                    <p class="is-size-7 is-uppercase">
+                        <a class="has-link-grey -link" href="/categories/Study/">Study</a> / <a class="has-link-grey -link" href="/categories/Study/Coding/">Coding</a>
+                    </p>
+                </div>
+            </div>
+        </article>
+        
+    </div>
+</div>
+
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+        <h3 class="menu-label">
+            Archives
+        </h3>
+        <ul class="menu-list">
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/02/">
+                <span class="level-start">
+                    <span class="level-item">February 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2018/12/">
+                <span class="level-start">
+                    <span class="level-item">December 2018</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2018/11/">
+                <span class="level-start">
+                    <span class="level-item">November 2018</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        </ul>
+        </div>
+    </div>
+</div>
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                Tags
+            </h3>
+            <div class="field is-grouped is-grouped-multiline">
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/Android/">
+                        <span class="tag">Android</span>
+                        <span class="tag is-grey">2</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/IDL/">
+                        <span class="tag">IDL</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/hexo/">
+                        <span class="tag">hexo</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+                <div class="control">
+                    <a class="tags has-addons" href="/tags/影评/">
+                        <span class="tag">影评</span>
+                        <span class="tag is-grey">1</span>
+                    </a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+    
+    
+</div>
+
+            </div>
+        </div>
+    </section>
+    <footer class="footer">
+    <div class="container">
+        <div class="level">
+            <div class="level-start has-text-centered-mobile">
+                <a class="footer-logo is-block has-mb-6" href="/">
+                
+                    Airom
+                
+                </a>
+                <p class="is-size-7">
+                &copy; 2019 Airom&nbsp;
+                Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> & <a href="http://github.com/ppoffice/hexo-theme-icarus" target="_blank">Icarus</a>
+                
+                </p>
+            </div>
+            <div class="level-end">
+            
+            </div>
+        </div>
+    </div>
+</footer>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script>
+<script>moment.locale("en");</script>
+
+
+    
+    
+    
+    <script src="/js/animation.js"></script>
+    
+
+    
+    
+    
+    <script src="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/js/lightgallery.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js" defer></script>
+    <script src="/js/gallery.js" defer></script>
+    
+
+    
+    
+
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/">Update
+            my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.js" defer></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        });
+    });
+</script>
+
+
+    
+    
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.5/unpacked/MathJax.js?config=TeX-MML-AM_CHTML" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    MathJax.Hub.Config({
+        'HTML-CSS': {
+            matchFontHeight: false
+        },
+        SVG: {
+            matchFontHeight: false
+        },
+        CommonHTML: {
+            matchFontHeight: false
+        },
+        tex2jax: {
+            inlineMath: [
+                ['$','$'],
+                ['\\(','\\)']
+            ]
+        }
+    });
+});
+</script>
+
+    
+    
+
+<a id="back-to-top" title="Back to Top" href="javascript:;">
+    <i class="fas fa-chevron-up"></i>
+</a>
+<script src="/js/back-to-top.js" defer></script>
+
+
+    
+    
+
+    
+    
+    
+    
+
+    
+    
+    
+    
+    
+    <script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script>
+    <script src="/js/clipboard.js" defer></script>
+    
+
+    
+
+
+<script src="/js/main.js" defer></script>
+
+    
+    <div class="searchbox ins-search">
+    <div class="searchbox-container ins-search-container">
+        <div class="searchbox-input-wrapper">
+            <input type="text" class="searchbox-input ins-search-input" placeholder="Type something...">
+            <span class="searchbox-close ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="searchbox-result-wrapper ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+    (function (window) {
+        var INSIGHT_CONFIG = {
+            TRANSLATION: {
+                POSTS: 'Posts',
+                PAGES: 'Pages',
+                CATEGORIES: 'Categories',
+                TAGS: 'Tags',
+                UNTITLED: '(Untitled)',
+            },
+            CONTENT_URL: '/content.json',
+        };
+        window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+    })(window);
+</script>
+<script src="/js/insight.js" defer></script>
+<link rel="stylesheet" href="/css/search.css">
+<link rel="stylesheet" href="/css/insight.css">
+    
+</body>
+</html>

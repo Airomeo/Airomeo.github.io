@@ -1,2 +1,2 @@
 # 个人博客
-## 网址: [ifif.cf](https://ifif.cf/)
+## [Link](https://zzy.design/)

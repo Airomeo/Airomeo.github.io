@@ -1,2 +1,2 @@
 # 个人博客
-## [Link](https://zzy.design/)
+## [Link](https://71111111.xyz/)
